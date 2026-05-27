@@ -7,6 +7,7 @@
 #include <Adafruit_SSD1306.h>
 #include <GyverButton.h>
 #include "GyverTimer.h"
+#include <GyverOLED.h>
 
 #define BUTTON_LEFT 0
 #define BUTTON_SELECT 1
@@ -47,8 +48,10 @@ GButton buttonSelect(BUTTON_SELECT);
 GButton buttonRight(BUTTON_RIGHT);
 
 GTimer myTimer(MS); 
+GyverOLED<SSD1306_128x64, OLED_BUFFER> oled;
 
 byte mode = 1;
+bool isClicked = false;
 
 void initHP() {
   hp = new SPIClass(SPI);
@@ -64,7 +67,7 @@ void initHP() {
     //radio1.printPrettyDetails();
     radio1.startConstCarrier(RF24_PA_MAX, channel1);
   } else {
-    Serial.println("HP couldn't start !!!");
+    //Serial.println("HP couldn't start !!!");
   }
 }
 
@@ -131,22 +134,36 @@ void jammingAdvertisong(){
 }
 
 void setup() {
+  Serial.begin(115200);
+
   myTimer.setTimeout(180);
   setCpuFrequencyMhz(240);
   esp_bt_controller_deinit();
   esp_wifi_stop();
   esp_wifi_deinit();
   esp_wifi_disconnect();
+
+  oled.init();
+  
   initHP();
+
+  oled.clear();
+  oled.home();
+  oled.print("Hello");
+  oled.update();
+
 
 }
 
 void loop() {
+  isClicked = false;
+  
   buttonLeft.tick();
   buttonSelect.tick();
   buttonRight.tick();
 
   if(buttonRight.isClick()){
+    isClicked = true;
     if(mode < MODE_COUNT){
       mode++;
     }
@@ -154,13 +171,23 @@ void loop() {
       mode = mode % MODE_COUNT + 1;
     }
   }
-  else{
-    return;
+
+  if(buttonLeft.isClick()){
+    isClicked = true;
+    if(mode > MODE_COUNT){
+      mode--;
+    }
+    else{
+      mode = MODE_COUNT;
+    }
   }
+
+  Serial.print("Mode: ");
+  Serial.println(mode);
 
   switch(mode){
   case 1:
-    //Serial.println("Nothing");
+    // oled.print("Nothing");
     break;
   case 2:
     jammingBluetooth();
@@ -192,5 +219,48 @@ void loop() {
   case 11:
     jammingWifiExperiment2();
     break;
+  }
+
+  if(isClicked){
+    Serial.println(mode);
+    oled.clear();
+    oled.home();
+    switch(mode){
+    case 1:
+      oled.print("Nothing");
+      break;
+    case 2:
+      oled.print("Bluetooth");
+      break;
+    case 3:
+      oled.print("BLE");
+      break;
+    case 4:
+      jammingWifi();
+      oled.print("WiFi");
+      break;
+    case 5:
+      oled.print("Advertisong");
+      break;
+    case 6:
+      oled.print("Bluetooth - 2");
+      break;
+    case 7:
+      oled.print("BLE - 2");
+      break;
+    case 8:
+      oled.print("WiFi - 2");
+      break;
+    case 9:
+      oled.print("Bluetooth - 3");
+      break;
+    case 10:
+      oled.print("BLE - 3");
+      break;
+    case 11:
+      oled.print("WiFI - 3");
+      break;
+    }
+    oled.update();
   }
 }
