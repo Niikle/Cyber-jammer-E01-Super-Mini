@@ -53,6 +53,7 @@ Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
 byte mode = 1;
 bool isClicked = false;
+bool jamm = false;
 
 void initHP() {
   hp = new SPIClass(SPI);
@@ -74,6 +75,10 @@ void initHP() {
     radio1.startConstCarrier(RF24_PA_MAX, channel1);
   } else {
     Serial.println("HP couldn't start !!!");
+
+    display.setCursor(0, 0);
+    display.println("HP not started !!!");
+    display.display();
   }
 }
 
@@ -175,6 +180,11 @@ void loop() {
     }
   }
 
+  if(buttonSelect.isClick()){
+    isClicked = !isClicked;
+    jamm = !jamm;
+  }
+
   if(buttonLeft.isClick()){
     isClicked = true;
     if(mode <= MODE_COUNT && mode > 1){
@@ -185,47 +195,60 @@ void loop() {
     }
   }
 
-  switch(mode){
-  case 1:
-    // display.println("Nothing");
-    break;
-  case 2:
-    jammingBluetooth();
-    break;
-  case 3:
-    jammingBLE();
-    break;
-  case 4:
-    jammingWifi();
-    break;
-  case 5:
-    jammingAdvertisong();
-    break;
-  case 6:
-    jammingBluetoothExperiment1();
-    break;
-  case 7:
-    jammingBLEExperiment1();
-    break;
-  case 8:
-    jammingWifiExperiment1();
-    break;
-  case 9:
-    jammingBluetoothExperiment2();
-    break;
-  case 10:
-    jammingBLEExperiment2();
-    break;
-  case 11:
-    jammingWifiExperiment2();
-    break;
+  if(jamm){
+    switch(mode){
+    case 1:
+      // display.println("Nothing");
+      break;
+    case 2:
+      jammingBluetooth();
+      break;
+    case 3:
+      jammingBLE();
+      break;
+    case 4:
+      jammingWifi();
+      break;
+    case 5:
+      jammingAdvertisong();
+      break;
+    case 6:
+      jammingBluetoothExperiment1();
+      break;
+    case 7:
+      jammingBLEExperiment1();
+      break;
+    case 8:
+      jammingWifiExperiment1();
+      break;
+    case 9:
+      jammingBluetoothExperiment2();
+      break;
+    case 10:
+      jammingBLEExperiment2();
+      break;
+    case 11:
+      jammingWifiExperiment2();
+      break;
+    }
   }
 
   if(isClicked){
     Serial.println(mode);
-    display.setCursor(0, 0);
+    
     display.clearDisplay();
-    display.println(mods[mode]);
+    display.setCursor(0, 0);
+    display.println(mods[mode - 1]);
+
+    if(jamm){
+      display.setCursor(0, 8);
+      display.println("Jamming");
+    }
+    else{
+      display.setCursor(0, 8);
+      display.println("Stop jamming");
+    }
+
     display.display();
   }
 }
