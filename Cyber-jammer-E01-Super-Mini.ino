@@ -34,11 +34,13 @@
 SPIClass *hp = nullptr;
 
 // radio(CE, CS)
-RF24 radio1(10, 7, 10000000);
+RF24 radio1(10, 7, 9000000);
 
 const byte bluetooth_channels[] = {32, 34, 46, 48, 50, 52, 0, 1, 2, 4, 6, 8, 22, 24, 26, 28, 30, 74, 76, 78, 80};
 const byte ble_channels[] = {2, 26, 80};
 const byte wifi_channels[] = {10, 35, 60};
+
+String mods[11] = {"Nothing", "Bluetooth", "BLE", "WiFi", "Advertisong", "Bluetooth - 2", "BLE - 2", "WiFi - 2", "Bluetooth - 3", "BLE - 3", "WiFI - 3"};
 
 byte channel1 = 45;
 
@@ -56,7 +58,12 @@ void initHP() {
   hp = new SPIClass(SPI);
   hp->begin();
   if (radio1.begin(hp)) {
-    //Serial.println("HP Started !!!------------------------------------------------------------------------");
+    Serial.println("HP Started !!!------------------------------------------------------------------------");
+
+    display.setCursor(0, 0);
+    display.println("HP Started !!!");
+    display.display();
+
     radio1.setAutoAck(false);//Инфа о получении сигнала приёмником отключена
     radio1.stopListening();//Прекращение прослушивания вхордящих сигналов
     radio1.setRetries(0, 0);//Отключение задержки при не получении сигналов приёмником
@@ -66,7 +73,7 @@ void initHP() {
     //radio1.printPrettyDetails();
     radio1.startConstCarrier(RF24_PA_MAX, channel1);
   } else {
-    //Serial.println("HP couldn't start !!!");
+    Serial.println("HP couldn't start !!!");
   }
 }
 
@@ -133,15 +140,12 @@ void jammingAdvertisong(){
 }
 
 void setup() {
-  //Serial.begin(115200);
+  Serial.begin(115200);
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.println("Nothing");
-  display.display();
 
   myTimer.setTimeout(180);
   setCpuFrequencyMhz(240);
@@ -158,7 +162,7 @@ void loop() {
   isClicked = false;
   
   buttonLeft.tick();
-  //buttonSelect.tick();
+  buttonSelect.tick();
   buttonRight.tick();
 
   if(buttonRight.isClick()){
@@ -218,46 +222,10 @@ void loop() {
   }
 
   if(isClicked){
-    //Serial.println(mode);
+    Serial.println(mode);
     display.setCursor(0, 0);
     display.clearDisplay();
-    switch(mode){
-    case 1:
-      display.println("Nothing");
-      break;
-    case 2:
-      display.println("Bluetooth");
-      //Serial.println("jammingBluetooth");
-      break;
-    case 3:
-      display.println("BLE");
-      break;
-    case 4:
-      jammingWifi();
-      display.println("WiFi");
-      break;
-    case 5:
-      display.println("Advertisong");
-      break;
-    case 6:
-      display.println("Bluetooth - 2");
-      break;
-    case 7:
-      display.println("BLE - 2");
-      break;
-    case 8:
-      display.println("WiFi - 2");
-      break;
-    case 9:
-      display.println("Bluetooth - 3");
-      break;
-    case 10:
-      display.println("BLE - 3");
-      break;
-    case 11:
-      display.println("WiFI - 3");
-      break;
-    }
+    display.println(mods[mode]);
     display.display();
   }
 }
